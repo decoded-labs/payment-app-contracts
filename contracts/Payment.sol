@@ -21,9 +21,9 @@ mapping(address => uint256) balances;
 //function to withdraw
 //checks balances and then transfers erc20 to sender (address that evokes function)
 //function will be connected to "Claim all" button in front-end
-    function claimTokens(uint256 _amount) external {
+    function claimTokens() external {
+        uint _amount = balances[msg.sender];
         require(balances[msg.sender] > 0, "Cannot claim 0 tokens");
-        require(balances[msg.sender] >= _amount, "Cannot claim more than balance");
         IERC20(paymentToken).transfer( msg.sender, _amount);
         balances[msg.sender] -= _amount;
     }
