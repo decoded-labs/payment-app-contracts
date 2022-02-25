@@ -11,7 +11,6 @@ contract Payment is Ownable {
 //functionality:
 //Anybody deposit erc20 -> interface tokens (bUSD -> address)
 //X withdraws deposited amount
-//Owner can add more balances(address -> allowance)
 //create an event for every function
 
 //variables
@@ -31,6 +30,13 @@ mapping(address => uint256) balances;
     function addNewBalance(address _address, uint _balance) public onlyOwner {
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom( msg.sender, address(this), _balance);
+    }
+
+    function addBonus(address _tokenAddress, uint _amount) public onlyOwner {
+        paymentToken = _tokenAddress;
+        balances[msg.sender] += _amount;
+        IERC20(paymentToken).transferFrom( msg.sender, address(this), _amount);
+
     }
 
 }
