@@ -17,31 +17,20 @@ contract Payment is Ownable {
 //variables
 address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
 mapping(address => uint256) balances;
-mapping(address => mapping(address => uint256)) private allowances;
-
-constructor() {
-}
-
-//function to deposit
-//updates balaces and adds amount to address given
-    function transferTokens(address _to, uint256 _amount) payable external returns (bool) {
-        _to = address(this);
-        IERC20(paymentToken).transfer(_to, _amount);
-        return true;
-    }
-
 
 //function to withdraw
 //checks balances and then transfers erc20 to sender (address that evokes function)
 //function will be connected to "Claim all" button in front-end
-    function claimTokens(address _from, address payable _to, uint256 _amount) external returns (bool) {
-        _from =  address(this);
-        IERC20(paymentToken).transferFrom(_from, _to, _amount);
-        return true;
+    function claimTokens(uint256 _amount) external {
+        require(balances[msg.sender] > 0, "Cannot claim 0 tokens");
+        require(balances[msg.sender] >= _amount, "Cannot claim more than balance");
+        IERC20(paymentToken).transfer( msg.sender, _amount);
+        balances[msg.sender] -= _amount;
     }
 
     function addNewBalance(address _address, uint _balance) public onlyOwner {
-        balances[_address] = _balance;
+        balances[_address] += _balance;
+        IERC20(paymentToken).transferFrom( msg.sender, address(this), _balance);
     }
 
 }
