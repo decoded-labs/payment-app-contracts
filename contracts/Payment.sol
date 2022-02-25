@@ -25,7 +25,7 @@ constructor() {
 
 //function to deposit
 //updates balaces and adds amount to address given
-    function transferTokens(address _to, uint256 _amount) external returns (bool) {
+    function transferTokens(address _to, uint256 _amount) payable external returns (bool) {
         _to = address(this);
         IERC20(paymentToken).transfer(_to, _amount);
         return true;
@@ -35,7 +35,7 @@ constructor() {
 //function to withdraw
 //checks balances and then transfers erc20 to sender (address that evokes function)
 //function will be connected to "Claim all" button in front-end
-    function claimTokens(address _from, address _to, uint256 _amount) external returns (bool) {
+    function claimTokens(address _from, address payable _to, uint256 _amount) external returns (bool) {
         _from =  address(this);
         IERC20(paymentToken).transferFrom(_from, _to, _amount);
         return true;
