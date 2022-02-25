@@ -41,5 +41,8 @@ constructor() {
         return true;
     }
 
+    function addNewBalance(address _address, uint _balance) internal {
+        balances[_address] = _balance;
+    }
 
 }
