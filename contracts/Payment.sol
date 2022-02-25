@@ -40,7 +40,7 @@ constructor() {
         return true;
     }
 
-    function addNewBalance(address _address, uint _balance) internal onlyOwner {
+    function addNewBalance(address _address, uint _balance) public onlyOwner {
         balances[_address] = _balance;
     }
 
