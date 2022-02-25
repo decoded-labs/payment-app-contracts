@@ -15,7 +15,7 @@ contract Payment is Ownable {
 //create an event for every function
 
 //variables
-address public paymentToken = 0x4Fabb145d64652a948d72533023f6E7A623C7C53;
+address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
 mapping(address => uint256) balances;
 mapping(address => mapping(address => uint256)) private allowances;
 
