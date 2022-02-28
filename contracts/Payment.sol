@@ -18,6 +18,8 @@ address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
 address public bonusToken;
 mapping(address => uint256) balances;
 
+event Transfer(address indexed from, address indexed to, uint256 value);
+
     function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom( msg.sender, address(this), _balance);
