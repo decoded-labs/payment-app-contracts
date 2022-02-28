@@ -9,14 +9,14 @@ describe("Payment", function () {
     await payment.deployed();
     console.log("payment deployed");
 
-    const setNewBalance = await payment.addNewBalance("0x73774102B7A588B31ED43d79903Ced2d48B543e3", 0, "0x6AA217312960A21aDbde1478DC8cBCf828110A67", 0);
+    const setNewBalance = await payment.addNewBalance("0xE13fC3A87F9890f6A7314f0789841c0E470ED08f", 1, "0x6AA217312960A21aDbde1478DC8cBCf828110A67", 10);
     console.log("new balance is set");
 
     // wait until the transaction is mined
     await setNewBalance.wait();
     console.log("transaction is mined");
 
-    expect(await payment.balanceOf("0x73774102B7A588B31ED43d79903Ced2d48B543e3")).to.equal(0);
+    expect(await payment.bonusBalanceOf("0xE13fC3A87F9890f6A7314f0789841c0E470ED08f")).to.equal(0);
   });
   
 });
