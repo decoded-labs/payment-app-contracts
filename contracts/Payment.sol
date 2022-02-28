@@ -17,6 +17,7 @@ contract Payment is Ownable {
 address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
 address public bonusToken;
 mapping(address => uint256) balances;
+mapping(address => uint256) bonusBalances;
 
 event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -24,7 +25,7 @@ event Transfer(address indexed from, address indexed to, uint256 value);
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom( msg.sender, address(this), _balance);
         bonusToken = _bonusTokenAddress;
-        balances[_address] += _bonusTokenAmount;
+        bonusBalances[_address] += _bonusTokenAmount;
         IERC20(bonusToken).transferFrom( msg.sender, address(this), _bonusTokenAmount);
     }
     
@@ -37,7 +38,8 @@ event Transfer(address indexed from, address indexed to, uint256 value);
         require(balances[msg.sender] > 0, "Cannot claim 0 tokens");
         IERC20(paymentToken).transfer( msg.sender, _amount);
         balances[msg.sender] -= _amount;
-        IERC20(bonusToken).transfer( msg.sender, _amount);
-        balances[msg.sender] -= _amount;
+        uint _bonusAmount = bonusBalances[msg.sender];
+        IERC20(bonusToken).transfer( msg.sender, _bonusAmount);
+        bonusBalances[msg.sender] -= _bonusAmount;
     }
 }
