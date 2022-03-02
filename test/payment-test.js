@@ -14,7 +14,10 @@ describe("Payment", function () {
     const mock20 = await Mock20.deploy("bUSD mock", "bUSDm") 
 
     const mock20Contract = mock20.attach("0xe9e7cea3dedca5984780bafc599bd69add087d56");
-    await mock20Contract.approve(payment.address, 1000);
+    const approveMock20Contract = await mock20Contract.approve(payment.address, 1000);
+
+    await approveMock20Contract.wait();
+    console.log("approval is mined");
 
     const BonusMock20 = await ethers.getContractFactory("Mock20");
     const bonusMock20 = await BonusMock20.deploy("bonus mock", "SpinM") 
@@ -22,8 +25,11 @@ describe("Payment", function () {
     const bonusMock20Contract = bonusMock20.attach("0x6AA217312960A21aDbde1478DC8cBCf828110A67");
     console.log("attached spin address to mock20 const");
     console.log("bonus mock contract address:" + bonusMock20Contract.address);
-    await bonusMock20Contract.approve(payment.address, 1000);
+    const approveBonusMock20Contract = await bonusMock20Contract.approve(payment.address, 1000);
     console.log("spin approved");
+
+    await approveBonusMock20Contract.wait();
+    console.log("approval is mined");
 
     const setNewBalance = await payment.addNewBalance("0xE13fC3A87F9890f6A7314f0789841c0E470ED08f", ethers.utils.parseEther("0.5"), 
     "0x6AA217312960A21aDbde1478DC8cBCf828110A67", ethers.utils.parseEther("10"));
