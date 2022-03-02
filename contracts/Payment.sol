@@ -13,16 +13,17 @@ address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
 address public bonusToken;
 mapping(address => uint256) balances;
 mapping(address => uint256) bonusBalances;
+mapping(address => mapping(address => uint256)) private _allowances;
 
 event Transfer(address indexed from, address indexed to, uint256 value);
 
+        function allowance(address owner, address spender) public view virtual returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
     function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
         balances[_address] += _balance;
-        console.log("balance added");
-
         IERC20(paymentToken).transfer(address(this), _balance);
-        console.log("tokens transfered");
-
 
         if (_bonusTokenAmount > 0) {
         bonusToken = _bonusTokenAddress;
