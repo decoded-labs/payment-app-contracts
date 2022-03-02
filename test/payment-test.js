@@ -1,45 +1,55 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { constants } = require("ethers");
 
 describe("Payment", function () {
   it("Should add new balance", async function () {
-    const Payment = await ethers.getContractFactory("Payment");
-    console.log("got Contract Factory");
-    const payment = await Payment.deploy();
-    await payment.deployed();
-    console.log("payment deployed");
-    console.log(payment.address);
+    // Rationale
+    //
+    // It makes it very cumbersome to try with real tokens in test environment.
+    // so, I thought why not just create 2 mock contracts and do the test with them.
 
+    // get the signer address (our deployer acc if we've added it in hardhatconfig beforehand)
+    const [owner] = await ethers.getSigners();
+
+    // give some native currency to owner acc (fake)
+    await network.provider.send("hardhat_setBalance", [
+      owner.address,
+      "0xfffffffffffffffffffffffffff",
+    ]);
+
+    // deploy mock contracts for busd and bonus
     const Mock20 = await ethers.getContractFactory("Mock20");
-    const mock20 = await Mock20.deploy("bUSD mock", "bUSDm") 
-
-    const mock20Contract = mock20.attach("0xe9e7cea3dedca5984780bafc599bd69add087d56");
-    const approveMock20Contract = await mock20Contract.approve(payment.address, 1000);
-
-    await approveMock20Contract.wait();
-    console.log("approval is mined");
-
+    const mock20 = await Mock20.deploy("bUSD mock", "bUSDm");
     const BonusMock20 = await ethers.getContractFactory("Mock20");
-    const bonusMock20 = await BonusMock20.deploy("bonus mock", "SpinM") 
+    const bonusMock20 = await BonusMock20.deploy("bonus mock", "SpinM");
 
-    const bonusMock20Contract = bonusMock20.attach("0x6AA217312960A21aDbde1478DC8cBCf828110A67");
-    console.log("attached spin address to mock20 const");
-    console.log("bonus mock contract address:" + bonusMock20Contract.address);
-    const approveBonusMock20Contract = await bonusMock20Contract.approve(payment.address, 1000);
-    console.log("spin approved");
+    // deploy payment contract using mock20 address
+    // I added constructor to the contract and now we set the payment token while deploying.
+    // @note see Payment.sol
+    const Payment = await ethers.getContractFactory("Payment");
 
-    await approveBonusMock20Contract.wait();
-    console.log("approval is mined");
+    // here we use mock20 as the payment token while deploying.
+    const payment = await Payment.deploy(mock20.address);
+    await payment.deployed();
+    console.log("Payment contract: ", payment.address);
 
-    const setNewBalance = await payment.addNewBalance("0xE13fC3A87F9890f6A7314f0789841c0E470ED08f", ethers.utils.parseEther("0.5"), 
-    "0x6AA217312960A21aDbde1478DC8cBCf828110A67", ethers.utils.parseEther("10"));
-    
-    console.log("new balance is set");
+    // approvals for both tokens
+    // I remembered wrong again it was ethers.utils.constants.MaxUint256 or like this below
+    await mock20.approve(payment.address, constants.MaxUint256);
+    await bonusMock20.approve(payment.address, constants.MaxUint256);
 
-    // wait until the transaction is mined
-    await setNewBalance.wait();
-    console.log("transaction is mined");
+    // we use parseEther to convert it to BigNumber and formatEther to read from BigNumber
+    await payment.addNewBalance(
+      owner.address,
+      ethers.utils.parseEther("1"),
+      bonusMock20.address,
+      ethers.utils.parseEther("1")
+    );
 
-    expect(await payment.balanceOf("0xE13fC3A87F9890f6A7314f0789841c0E470ED08f")).to.equal(0.5);
+    // lets test!
+    expect(await payment.balanceOf(owner.address)).to.equal(
+      ethers.utils.parseEther("1")
+    );
   });
 });

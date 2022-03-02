@@ -9,27 +9,28 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Payment is Ownable, ReentrancyGuard {
 
-address public paymentToken = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
-address public bonusToken;
-mapping(address => uint256) balances;
-mapping(address => uint256) bonusBalances;
-mapping(address => mapping(address => uint256)) private _allowances;
+    address public paymentToken;
+    address public bonusToken;
+    mapping(address => uint256) balances;
+    mapping(address => uint256) bonusBalances;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
-event Transfer(address indexed from, address indexed to, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
-        function allowance(address owner, address spender) public view virtual returns (uint256) {
+    constructor (address _paymentToken) {
+        paymentToken = _paymentToken;
+    }
+
+    function allowance(address owner, address spender) public view virtual returns (uint256) {
         return _allowances[owner][spender];
     }
 
     function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
-
         if (_bonusTokenAmount > 0) {
-        bonusToken = _bonusTokenAddress;
-        IERC20(bonusToken).approve(_address, _bonusTokenAmount);
-        bonusBalances[_address] += _bonusTokenAmount;
-        IERC20(bonusToken).transferFrom(msg.sender, address(this), _bonusTokenAmount);
+            bonusBalances[_address] += _bonusTokenAmount;
+            IERC20(_bonusTokenAddress).transferFrom(msg.sender, address(this), _bonusTokenAmount);
         }
     }
 
