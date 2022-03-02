@@ -23,7 +23,7 @@ event Transfer(address indexed from, address indexed to, uint256 value);
 
     function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
         balances[_address] += _balance;
-        IERC20(paymentToken).transfer(address(this), _balance);
+        IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
 
         if (_bonusTokenAmount > 0) {
         bonusToken = _bonusTokenAddress;
