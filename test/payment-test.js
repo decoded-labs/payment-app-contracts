@@ -19,6 +19,7 @@ describe("Payment", function () {
     ]);
 
     // deploy mock contracts for busd and bonus
+    // @note Check the Mock20 as well please, I added minting to constructor.
     const Mock20 = await ethers.getContractFactory("Mock20");
     const mock20 = await Mock20.deploy("bUSD mock", "bUSDm");
     const BonusMock20 = await ethers.getContractFactory("Mock20");
