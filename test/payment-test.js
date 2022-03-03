@@ -41,16 +41,25 @@ describe("Payment", function () {
     await bonusMock20.approve(payment.address, constants.MaxUint256);
 
     // we use parseEther to convert it to BigNumber and formatEther to read from BigNumber
-    await payment.addNewBalance(
+    const setNewBalance = await payment.addNewBalance(
       owner.address,
       ethers.utils.parseEther("1"),
       bonusMock20.address,
-      ethers.utils.parseEther("1")
+      ethers.utils.parseEther("2")
     );
 
     // lets test!
     expect(await payment.balanceOf(owner.address)).to.equal(
       ethers.utils.parseEther("1")
+    );
+    expect(await setNewBalance).to.emit(payment, 'NewBalanceAdded')
+    .withArgs(owner.address, ethers.utils.parseEther("1")
+    );
+    expect(await payment.bonusBalanceOf(owner.address)).to.equal(
+      ethers.utils.parseEther("2")
+    );
+    expect(await setNewBalance).to.emit(payment, 'BonusBalanceAdded')
+    .withArgs(bonusMock20.address, ethers.utils.parseEther("2")
     );
   });
 });
