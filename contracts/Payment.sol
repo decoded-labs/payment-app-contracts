@@ -10,9 +10,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract Payment is Ownable, ReentrancyGuard {
 
     address public paymentToken;
-    address public bonusToken;
     mapping(address => uint256) balances;
-    mapping(address => uint256) bonusBalances;
+    mapping(address => mapping(address => uint256)) _bonusBalances; //(user =>(tokenAddress => tokenAmount))
     mapping(address => mapping(address => uint256)) private _allowances;
 
     event NewBalanceAdded(address indexed balanceAddress, uint256 indexed amount);
@@ -32,20 +31,22 @@ contract Payment is Ownable, ReentrancyGuard {
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
         emit NewBalanceAdded(_address, _balance);
+        
         if (_bonusTokenAmount > 0) {
-            bonusBalances[_address] += _bonusTokenAmount;
+            _bonusBalances[_address][_bonusTokenAddress] += _bonusTokenAmount;
             IERC20(_bonusTokenAddress).transferFrom(msg.sender, address(this), _bonusTokenAmount);
             emit BonusBalanceAdded(_bonusTokenAddress, _bonusTokenAmount);
         }
     }
 
-
     function balanceOf(address account) external view returns (uint256) {
         return balances[account];
     }
     
-    function bonusBalanceOf(address account) external view returns (uint256) {
-        return bonusBalances[account];
+    function bonusBalanceOf(address userAccount, address bonusToken) public view
+     returns (uint256) 
+    {        
+    return _bonusBalances[userAccount][bonusToken];    
     }
 
     function claimTokens() external nonReentrant {
@@ -55,11 +56,16 @@ contract Payment is Ownable, ReentrancyGuard {
         balances[msg.sender] -= _amount;
         emit BalanceClaimed(msg.sender, _amount);
 
-        if (bonusBalances[msg.sender] > 0) {
-        uint _bonusAmount = bonusBalances[msg.sender];
-        IERC20(bonusToken).transfer( msg.sender, _bonusAmount);
-        bonusBalances[msg.sender] -= _bonusAmount;
+        if (_bonusBalances[msg.sender][_tokenAddress] > 0) {
+        _bonusToken = _bonusBalances[msg.sender][_tokenAddress];
+        uint _bonusAmount = _bonusBalances[msg.sender][_tokenAddress];
+        IERC20(_bonusToken).transfer( msg.sender, _bonusAmount);
+        _bonusBalances[msg.sender][_tokenAddress] -= _bonusAmount;
         emit BonusBalanceClaimed(msg.sender, _bonusAmount);
         }
+    }
+
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        Ownable.transferOwnership(newOwner);
     }
 }
