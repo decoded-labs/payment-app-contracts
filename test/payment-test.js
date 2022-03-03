@@ -13,10 +13,10 @@ describe("Payment", function () {
     const [owner] = await ethers.getSigners();
 
     // give some native currency to owner acc (fake)
-    await network.provider.send("hardhat_setBalance", [
-      owner.address,
-      "0xfffffffffffffffffffffffffff",
-    ]);
+    // await network.provider.send("hardhat_setBalance", [
+    //   owner.address,
+    //   "0xfffffffffffffffffffffffffff",
+    // ]);
 
     // deploy mock contracts for busd and bonus
     // @note Check the Mock20 as well please, I added minting to constructor.
@@ -60,6 +60,58 @@ describe("Payment", function () {
     );
     expect(await setNewBalance).to.emit(payment, 'BonusBalanceAdded')
     .withArgs(bonusMock20.address, ethers.utils.parseEther("2")
+    );
+  });
+});
+
+describe("Payment/Claim balance", function () {
+  it("Should claim everything in the balance", async function () {
+
+    const [owner] = await ethers.getSigners();
+
+    await network.provider.send("hardhat_setBalance", [
+      owner.address,
+      "0xfffffffffffffffffffffffffff",
+    ]);
+
+    const Mock20 = await ethers.getContractFactory("Mock20");
+    const mock20 = await Mock20.deploy("bUSD mock", "bUSDm");
+    const BonusMock20 = await ethers.getContractFactory("Mock20");
+    const bonusMock20 = await BonusMock20.deploy("bonus mock", "SpinM");
+
+    const Payment = await ethers.getContractFactory("Payment");
+
+    const payment = await Payment.deploy(mock20.address);
+    await payment.deployed();
+    console.log("payment deployed");
+
+    await mock20.approve(payment.address, constants.MaxUint256);
+    await bonusMock20.approve(payment.address, constants.MaxUint256);
+    console.log("tokens approved");
+
+
+    await payment.addNewBalance(
+      owner.address,
+      ethers.utils.parseEther("1"),
+      bonusMock20.address,
+      ethers.utils.parseEther("2")
+    );
+    console.log("new balance is set");
+
+    const claimTokens = await payment.claimTokens();
+    console.log("tokens claimed");
+
+    expect(await payment.balanceOf(owner.address)).to.equal(
+      ethers.utils.parseEther("0")
+    );
+    expect(await claimTokens).to.emit(payment, 'BalanceClaimed')
+    .withArgs(owner.address, ethers.utils.parseEther("1")
+    );
+    expect(await payment.bonusBalanceOf(owner.address)).to.equal(
+      ethers.utils.parseEther("0")
+    );
+    expect(await claimTokens).to.emit(payment, 'BonusBalanceClaimed')
+    .withArgs(owner.address, ethers.utils.parseEther("2")
     );
   });
 });

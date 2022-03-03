@@ -15,16 +15,6 @@ async function main() {
 
   // We get the contract to deploy
 
-  const SPIN_DEPLOYER = "0x73774102B7A588B31ED43d79903Ced2d48B543e3";
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [SPIN_DEPLOYER],
-  });
-  await network.provider.send("hardhat_setBalance", [
-    SPIN_DEPLOYER,
-    "0xfffffffffffffffffffffffffff",
-  ]);
-
   const Payment = await hre.ethers.getContractFactory("Payment");
   const payment = await Payment.deploy();
 
