@@ -15,7 +15,10 @@ contract Payment is Ownable, ReentrancyGuard {
     mapping(address => uint256) bonusBalances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
+    event NewBalanceAdded(address indexed balanceAddress, uint256 indexed amount);
+    event BonusBalanceAdded(address indexed bonusTokenAddress, uint256 indexed bonusTokenAmount);
+    event BalanceClaimed(address indexed ownerAddress, uint256 indexed amount);
+    event BonusBalanceClaimed(address indexed ownerAddress, uint256 indexed bonusTokenAmount);
 
     constructor (address _paymentToken) {
         paymentToken = _paymentToken;
@@ -28,9 +31,11 @@ contract Payment is Ownable, ReentrancyGuard {
     function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
         balances[_address] += _balance;
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
+        emit NewBalanceAdded(_address, _balance);
         if (_bonusTokenAmount > 0) {
             bonusBalances[_address] += _bonusTokenAmount;
             IERC20(_bonusTokenAddress).transferFrom(msg.sender, address(this), _bonusTokenAmount);
+            emit BonusBalanceAdded(_bonusTokenAddress, _bonusTokenAmount);
         }
     }
 
@@ -48,11 +53,13 @@ contract Payment is Ownable, ReentrancyGuard {
         require(balances[msg.sender] > 0, "Cannot claim 0 tokens");
         IERC20(paymentToken).transfer(msg.sender, _amount);
         balances[msg.sender] -= _amount;
+        emit BalanceClaimed(msg.sender, _amount);
 
         if (bonusBalances[msg.sender] > 0) {
         uint _bonusAmount = bonusBalances[msg.sender];
         IERC20(bonusToken).transfer( msg.sender, _bonusAmount);
         bonusBalances[msg.sender] -= _bonusAmount;
+        emit BonusBalanceClaimed(msg.sender, _bonusAmount);
         }
     }
 }
