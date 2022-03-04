@@ -43,10 +43,8 @@ contract Payment is Ownable, ReentrancyGuard {
         return balances[beneficiary];
     }
     
-    function bonusBalanceOf() public view
-     returns (uint256) 
-    {        
-    return bonusBalances;    
+    function bonusBalanceOf() public view returns (uint256) {        
+        return bonusBalances;    
     }
 
     function claimTokens() external nonReentrant {
