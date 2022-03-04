@@ -9,15 +9,15 @@ module.exports = {
       forking: {
         url: process.env.BINANCE_URL,
       },
-
+    },
     binance: {
       url: process.env.BINANCE_URL || "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+  },
+  etherscan: {
+    apiKey: "T6I3TBXJ8R2MEKJV1QGRPD2SR3V3R6HT2U"
   }
-},
-etherscan: {
-  apiKey: "T6I3TBXJ8R2MEKJV1QGRPD2SR3V3R6HT2U"
 }
-};
+
