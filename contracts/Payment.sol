@@ -9,63 +9,62 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Payment is Ownable, ReentrancyGuard {
 
+    address public beneficiary;
     address public paymentToken;
+    address public bonusToken;
+    uint256 public bonusBalances;
+
     mapping(address => uint256) balances;
-    mapping(address => mapping(address => uint256)) _bonusBalances; //(user =>(tokenAddress => tokenAmount))
-    mapping(address => mapping(address => uint256)) private _allowances;
 
     event NewBalanceAdded(address indexed balanceAddress, uint256 indexed amount);
     event BonusBalanceAdded(address indexed bonusTokenAddress, uint256 indexed bonusTokenAmount);
     event BalanceClaimed(address indexed ownerAddress, uint256 indexed amount);
     event BonusBalanceClaimed(address indexed ownerAddress, uint256 indexed bonusTokenAmount);
 
-    constructor (address _paymentToken) {
+    constructor (address _paymentToken, address _bonusToken, address _beneficiary) {
         paymentToken = _paymentToken;
+        bonusToken = _bonusToken;
+        beneficiary = _beneficiary;
     }
 
-    function allowance(address owner, address spender) public view virtual returns (uint256) {
-        return _allowances[owner][spender];
-    }
-
-    function addNewBalance(address _address, uint _balance, address _bonusTokenAddress, uint _bonusTokenAmount) public onlyOwner {
-        balances[_address] += _balance;
+    function addNewBalance(uint _balance, uint _bonusTokenAmount) public onlyOwner {
+        balances[beneficiary] += _balance;
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
-        emit NewBalanceAdded(_address, _balance);
+        emit NewBalanceAdded(beneficiary, _balance);
         
         if (_bonusTokenAmount > 0) {
-            _bonusBalances[_address][_bonusTokenAddress] += _bonusTokenAmount;
-            IERC20(_bonusTokenAddress).transferFrom(msg.sender, address(this), _bonusTokenAmount);
-            emit BonusBalanceAdded(_bonusTokenAddress, _bonusTokenAmount);
+            bonusBalances += _bonusTokenAmount;
+            IERC20(bonusToken).transferFrom(msg.sender, address(this), _bonusTokenAmount);
+            emit BonusBalanceAdded(bonusToken, _bonusTokenAmount);
         }
     }
 
-    function balanceOf(address account) external view returns (uint256) {
-        return balances[account];
+    function balanceOf() external view returns (uint256) {
+        return balances[beneficiary];
     }
     
-    function bonusBalanceOf(address userAccount, address bonusToken) public view
+    function bonusBalanceOf() public view
      returns (uint256) 
     {        
-    return _bonusBalances[userAccount][bonusToken];    
+    return bonusBalances;    
     }
 
     function claimTokens() external nonReentrant {
-        uint _amount = balances[msg.sender];
-        require(balances[msg.sender] > 0, "Cannot claim 0 tokens");
-        IERC20(paymentToken).transfer(msg.sender, _amount);
-        balances[msg.sender] -= _amount;
-        emit BalanceClaimed(msg.sender, _amount);
+        uint _amount = balances[beneficiary];
+        require(balances[beneficiary] > 0, "Cannot claim 0 tokens");
+        IERC20(paymentToken).transfer(beneficiary, _amount);
+        balances[beneficiary] -= _amount;
+        emit BalanceClaimed(beneficiary, _amount);
 
-        if (_bonusBalances[msg.sender][_tokenAddress] > 0) {
-        _bonusToken = _bonusBalances[msg.sender][_tokenAddress];
-        uint _bonusAmount = _bonusBalances[msg.sender][_tokenAddress];
-        IERC20(_bonusToken).transfer( msg.sender, _bonusAmount);
-        _bonusBalances[msg.sender][_tokenAddress] -= _bonusAmount;
-        emit BonusBalanceClaimed(msg.sender, _bonusAmount);
+        if (bonusBalances > 0) {
+        uint256 _bonusAmount = bonusBalances;
+        bonusBalances = 0;
+        IERC20(bonusToken).transfer(beneficiary, _bonusAmount);
+        emit BonusBalanceClaimed(beneficiary, _bonusAmount);
         }
     }
 
-    function transferOwnership(address newOwner) public virtual onlyOwner {
+    function transferOwnership(address newOwner) public virtual override onlyOwner {
         Ownable.transferOwnership(newOwner);
     }
 }
