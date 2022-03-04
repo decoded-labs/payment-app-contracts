@@ -27,6 +27,15 @@ contract Payment is Ownable, ReentrancyGuard {
         beneficiary = _beneficiary;
     }
 
+    modifier emptyBonusBalance() {
+        if(bonusBalances > 0) {
+            uint256 _bonusAmount = bonusBalances;
+            bonusBalances = 0; 
+            IERC20(bonusToken).transfer(beneficiary, _bonusAmount);
+            _;
+        }
+    } 
+
     function addNewBalance(uint _balance, uint _bonusTokenAmount) public onlyOwner {
         balances[beneficiary] += _balance;
         IERC20(paymentToken).transferFrom(msg.sender, address(this), _balance);
@@ -47,6 +56,10 @@ contract Payment is Ownable, ReentrancyGuard {
         return bonusBalances;    
     }
 
+    function setBonusToken (address _newBonusToken) public onlyOwner emptyBonusBalance {
+        bonusToken = _newBonusToken;
+    }
+
     function claimTokens() external nonReentrant {
         uint _amount = balances[beneficiary];
         require(balances[beneficiary] > 0, "Cannot claim 0 tokens");
@@ -62,7 +75,4 @@ contract Payment is Ownable, ReentrancyGuard {
         }
     }
 
-    function transferOwnership(address newOwner) public virtual override onlyOwner {
-        Ownable.transferOwnership(newOwner);
-    }
 }
